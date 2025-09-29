@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import slugify from 'slugify';
+import { nanoid } from 'nanoid';
 import { User } from './user.entity';
 import { CreateUserDto } from 'src/dto/createuser.dto';
 
@@ -10,32 +12,60 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
 
+  // ✅ Create new user with unique GitHub-style username
   async createUser(dto: CreateUserDto) {
+    const existingEmail = await this.usersRepository.findOne({ where: { email: dto.email } });
+    if (existingEmail) throw new BadRequestException('Email already in use');
+
     const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    // Generate base slug from name or email prefix
+    let baseSlug = slugify(dto.name, { lower: true, strict: true });
+    if (!baseSlug) {
+      baseSlug = slugify(dto.email.split('@')[0], { lower: true, strict: true });
+    }
+
+    // GitHub-style unique username e.g. john-smith-7g3p
+    let username: string;
+    do {
+      username = `${baseSlug}-${nanoid(4)}`;
+    } while (await this.usersRepository.findOne({ where: { username } }));
+
     const user = this.usersRepository.create({
       email: dto.email,
+      name: dto.name,
       password: hashedPassword,
       role: dto.role || 'USER',
+      username,
     });
+
     await this.usersRepository.save(user);
-    return { ...user, password: undefined }; // hide password
+    const { password, ...safeUser } = user;
+    return safeUser;
   }
 
-  async findByEmail(email: string) {
-    return this.usersRepository.findOneBy({ email });
+  // ✅ Find user by email (includes password for auth)
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
   }
 
-  async findById(id: number) {
-    const user = await this.usersRepository.findOneBy({ id });
+  // ✅ Find user by ID (safe return without password)
+  async findById(id: string) {
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) return null;
     const { password, ...rest } = user;
     return rest;
   }
 
-  async findAll() {
-    const users = await this.usersRepository.find();
-    return users.map(u => ({ ...u, password: undefined }));
+  // ✅ Update user (supports refreshTokenHash and other fields)
+  async update(userId: string, partial: Partial<User>): Promise<void> {
+    await this.usersRepository.update({ id: userId }, partial);
+  }
+
+  // Optional helper to clear refresh token
+  async clearRefreshToken(userId: string | number): Promise<void> {
+    await this.usersRepository.update(userId, { refreshTokenHash: null });
   }
 }

@@ -12,13 +12,8 @@ export class UsersController {
     return this.usersService.createUser(createUserDto);
   }
 
-  @Get()
-  async findAll() {
-    return this.usersService.findAll();
-  }
-
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.usersService.findById(Number(id));
+    return this.usersService.findById(id);
   }
 }

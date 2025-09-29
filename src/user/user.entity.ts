@@ -2,8 +2,8 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   email: string;
@@ -13,4 +13,14 @@ export class User {
 
   @Column()
   role: 'USER' | 'ADMIN';
+
+  @Column()
+  name: string;
+
+  @Column({ unique: true })
+  username: string;
+
+  // Store hashed refresh token for security
+  @Column({ type: 'text', nullable: true })
+  refreshTokenHash: string | null;
 }
