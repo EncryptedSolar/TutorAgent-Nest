@@ -8,7 +8,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   // ✅ Validate username/password
   async validateUser(email: string, password: string) {
@@ -41,11 +41,22 @@ export class AuthService {
     const hash = await bcrypt.hash(refreshToken, 10);
     await this.usersService.update(user.id, { refreshTokenHash: hash });
 
+    // Exclude sensitive fields before returning
+    const safeUser = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name,
+      username: user.username,
+    };
+
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
+      user: safeUser,
     };
   }
+
 
   // ✅ Refresh tokens (verify + rotate)
   async refreshTokens(refreshToken: string) {

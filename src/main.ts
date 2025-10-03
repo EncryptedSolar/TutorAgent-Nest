@@ -11,6 +11,13 @@ async function bootstrap() {
     const logger = app.get(LoggerService);
   }
 
+  // Allow requests from your frontend
+  app.enableCors({
+    origin: 'http://localhost:5173', // or '*' for all origins (less secure)
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true, // if you need cookies/auth headers
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
