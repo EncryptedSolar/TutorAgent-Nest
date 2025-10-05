@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from 'src/dto/createuser.dto';
 import { UsersService } from 'src/user/user.service';
 
 @Injectable()
@@ -23,13 +24,22 @@ export class AuthService {
     return result;
   }
 
+  // ✅ New register method
+  async register(dto: CreateUserDto) {
+    // 1️⃣ Create the user
+    const user = await this.usersService.createUser(dto);
+
+    // 2️⃣ Immediately generate tokens
+    return this.login(user);
+  }
+
   // ✅ Generate access + refresh tokens and persist hashed refresh token
   async login(user: any) {
     const payload = { sub: user.id, email: user.email, role: user.role };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '15m', // adjust as needed
+      expiresIn: '1m', // adjust as needed
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
@@ -77,7 +87,7 @@ export class AuthService {
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: '15m',
+        expiresIn: '1m',
       });
 
       const newRefreshToken = await this.jwtService.signAsync(newPayload, {

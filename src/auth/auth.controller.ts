@@ -8,11 +8,17 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt.guard';
+import { CreateUserDto } from 'src/dto/createuser.dto';
+import { UsersService } from 'src/user/user.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
+  @Post('register')
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
+  }
   /**
    * User login
    * Uses LocalStrategy to validate email/password.
