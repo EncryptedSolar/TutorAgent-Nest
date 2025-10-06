@@ -13,8 +13,7 @@ import 'dotenv/config'
         forwardRef(() => UsersModule), // <-- wrap in forwardRef        
         PassportModule,
         JwtModule.register({
-            secret: process.env.JWT_SECRET,
-            signOptions: { expiresIn: '1h' },
+            secret: process.env.JWT__ACCESS_SECRET,
         }),
     ],
     providers: [AuthService, LocalStrategy, JwtStrategy],

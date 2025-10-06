@@ -39,12 +39,12 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: '1m', // adjust as needed
+      expiresIn: process.env.JWT_ACCESS_EXPIRES, // adjust as needed
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '7d', // adjust as needed
+      expiresIn: process.env.JWT_REFRESH_EXPIRES, // adjust as needed
     });
 
     // Store hashed refresh token in DB for revocation/rotation
@@ -87,12 +87,12 @@ export class AuthService {
 
       const newAccessToken = await this.jwtService.signAsync(newPayload, {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: '1m',
+        expiresIn: process.env.JWT_ACCESS_EXPIRES,
       });
 
       const newRefreshToken = await this.jwtService.signAsync(newPayload, {
         secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: '7d',
+        expiresIn: process.env.JWT_REFRESH_EXPIRES,
       });
 
       // Rotate refresh token
