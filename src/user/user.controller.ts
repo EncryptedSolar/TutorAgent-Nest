@@ -17,7 +17,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Post('hello')
   async sayHello(@Body() something: any, @Req() req: Request & { user: { userId: string; email: string; role: string } }) {
-    console.log('User info:', req.user); // payload from access token
-    return `Hey ${req.user.email}, I received your message.`;
+    console.log('User info:', req.user);
+    return { message: `Hey ${req.user.email}, I received your message.` };
   }
 }
