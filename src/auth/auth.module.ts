@@ -7,6 +7,7 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from 'src/user/user.module';
 import 'dotenv/config'
+import { WsJwtGuard } from './ws.jwt.guard';
 
 @Module({
     imports: [
@@ -16,8 +17,8 @@ import 'dotenv/config'
             secret: process.env.JWT__ACCESS_SECRET,
         }),
     ],
-    providers: [AuthService, LocalStrategy, JwtStrategy],
+    providers: [AuthService, LocalStrategy, JwtStrategy, WsJwtGuard],
     controllers: [AuthController],
-    exports: [AuthService],
+    exports: [AuthService, JwtModule, WsJwtGuard],
 })
 export class AuthModule { }

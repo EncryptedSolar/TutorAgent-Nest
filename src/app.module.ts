@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerService } from './utils/logger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
+import { WsJwtGuard } from './auth/ws.jwt.guard';
+import { SocketGateway } from './gateway/socket.gateway';
 
 @Module({
   imports: [
@@ -21,6 +23,6 @@ import { User } from './user/user.entity';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, LoggerService],
+  providers: [AppService, LoggerService, SocketGateway],
 })
 export class AppModule { }
