@@ -11,7 +11,7 @@ import { WsJwtGuard } from './ws.jwt.guard';
 
 @Module({
     imports: [
-        forwardRef(() => UsersModule), // <-- wrap in forwardRef        
+        UsersModule,
         PassportModule,
         JwtModule.register({
             secret: process.env.JWT__ACCESS_SECRET,
