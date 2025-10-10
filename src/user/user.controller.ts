@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { Request } from 'express'
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 
 @Controller('users')
 export class UsersController {

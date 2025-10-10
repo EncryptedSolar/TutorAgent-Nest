@@ -1,23 +1,30 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { LoggerService } from './utils/logger';
-import 'dotenv/config'
+import { LoggerService } from './common/utils/logger';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Conditionally start the logging pipeline
-  if (process.env.NODE_ENV === 'development') {
-    const logger = app.get(LoggerService);
+  // 🔧 Access environment variables via ConfigService
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT', 3000);
+  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+  const frontendOrigin = configService.get<string>('FRONTEND_ORIGIN', 'http://localhost:5173');
+
+  // 🧠 Conditional logger setup (only in dev)
+  if (nodeEnv === 'development') {
+    app.get(LoggerService); // if it self-registers its pipes or interceptors
   }
 
-  // Allow requests from your frontend
+  // 🌐 Enable CORS with environment config
   app.enableCors({
-    origin: 'http://localhost:5173', // or '*' for all origins (less secure)
+    origin: frontendOrigin,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    credentials: true, // if you need cookies/auth headers
+    credentials: true,
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(port);
+  console.log(`🚀 Server running in ${nodeEnv} mode on port ${port}`);
 }
 bootstrap();

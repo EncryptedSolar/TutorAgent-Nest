@@ -8,7 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { UseGuards } from '@nestjs/common';
 import { Socket } from 'socket.io';
-import { WsJwtGuard } from '../auth/ws.jwt.guard';
+import { WsJwtGuard } from '../common/guards/ws.jwt.guard';
 import { v4 as uuidv4 } from "uuid";
 
 @WebSocketGateway({ cors: true })

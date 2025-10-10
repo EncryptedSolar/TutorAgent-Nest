@@ -1,7 +1,7 @@
 // app-logger.service.ts
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Subscription } from 'rxjs';
-import { LogEvent, loggingSubject } from 'src/logging-stream';
+import { LogEvent, loggingSubject } from 'src/common/utils/logging-stream';
 
 @Injectable()
 export class LoggerService implements OnModuleDestroy {

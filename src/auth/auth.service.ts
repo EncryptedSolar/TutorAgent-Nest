@@ -1,17 +1,22 @@
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+// src/auth/auth.service.ts
+import {
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from 'src/dto/createuser.dto';
 import { UsersService } from 'src/user/user.service';
+import { CreateUserDto } from 'src/dto/createuser.dto';
+import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-  ) { }
+    private readonly usersService: UsersService,
+    private readonly jwtUtils: JwtUtilsService,
+  ) {}
 
-  // ✅ Validate username/password
+  // ✅ Validate user credentials
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) return null;
@@ -19,39 +24,30 @@ export class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return null;
 
-    // Strip password before returning
-    const { password: _pass, ...result } = user;
-    return result;
+    const { password: _, ...safeUser } = user;
+    return safeUser;
   }
 
-  // ✅ New register method
+  // ✅ Register new user and auto-login
   async register(dto: CreateUserDto) {
-    // 1️⃣ Create the user
     const user = await this.usersService.createUser(dto);
-
-    // 2️⃣ Immediately generate tokens
-    return this.login(user);
+    return this.issueTokensForUser(user);
   }
 
-  // ✅ Generate access + refresh tokens and persist hashed refresh token
+  // ✅ Login
   async login(user: any) {
+    return this.issueTokensForUser(user);
+  }
+
+  // ✅ Issue new access & refresh tokens
+  private async issueTokensForUser(user: any) {
     const payload = { sub: user.id, email: user.email, role: user.role };
+    const { accessToken, refreshToken } =
+      await this.jwtUtils.generateTokens(payload);
 
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_SECRET,
-      expiresIn: process.env.JWT_ACCESS_EXPIRES, // adjust as needed
-    });
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await this.usersService.update(user.id, { refreshTokenHash });
 
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: process.env.JWT_REFRESH_EXPIRES, // adjust as needed
-    });
-
-    // Store hashed refresh token in DB for revocation/rotation
-    const hash = await bcrypt.hash(refreshToken, 10);
-    await this.usersService.update(user.id, { refreshTokenHash: hash });
-
-    // Exclude sensitive fields before returning
     const safeUser = {
       id: user.id,
       email: user.email,
@@ -67,50 +63,33 @@ export class AuthService {
     };
   }
 
-
   // ✅ Refresh tokens (verify + rotate)
   async refreshTokens(refreshToken: string) {
-    try {
-      // Verify signature & expiration
-      const payload = await this.jwtService.verifyAsync(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
-      });
+    const payload = await this.jwtUtils.verifyRefreshToken(refreshToken);
 
-      const user = await this.usersService.findById(payload.sub);
-      if (!user || !user.refreshTokenHash) throw new ForbiddenException('Refresh token not found');
+    const user = await this.usersService.findById(payload.sub);
+    if (!user?.refreshTokenHash)
+      throw new ForbiddenException('Refresh token not found');
 
-      const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
-      if (!isValid) throw new ForbiddenException('Invalid refresh token');
+    const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+    if (!isValid) throw new ForbiddenException('Invalid refresh token');
 
-      // Generate new tokens
-      const newPayload = { sub: user.id, email: user.email, role: user.role };
+    const newPayload = { sub: user.id, email: user.email, role: user.role };
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.jwtUtils.generateTokens(newPayload);
 
-      const newAccessToken = await this.jwtService.signAsync(newPayload, {
-        secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: process.env.JWT_ACCESS_EXPIRES,
-      });
+    const newHash = await bcrypt.hash(newRefreshToken, 10);
+    await this.usersService.update(user.id, { refreshTokenHash: newHash });
 
-      const newRefreshToken = await this.jwtService.signAsync(newPayload, {
-        secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: process.env.JWT_REFRESH_EXPIRES,
-      });
-
-      // Rotate refresh token
-      const newHash = await bcrypt.hash(newRefreshToken, 10);
-      await this.usersService.update(user.id, { refreshTokenHash: newHash });
-
-      return {
-        access_token: newAccessToken,
-        refresh_token: newRefreshToken,
-      };
-    } catch (err) {
-      throw new UnauthorizedException('Invalid or expired refresh token');
-    }
+    return {
+      access_token: accessToken,
+      refresh_token: newRefreshToken,
+    };
   }
 
   // ✅ Logout (invalidate refresh token)
   async logout(userId: string) {
     await this.usersService.update(userId, { refreshTokenHash: null });
-    return { message: 'Logged out' };
+    return { message: 'Logged out successfully' };
   }
 }

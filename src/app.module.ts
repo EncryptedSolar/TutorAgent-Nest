@@ -3,14 +3,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { LoggerService } from './utils/logger';
+import { LoggerService } from './common/utils/logger';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
-import { WsJwtGuard } from './auth/ws.jwt.guard';
-import { SocketGateway } from './gateway/socket.gateway';
+import { SocketGateway } from './socket/socket.gateway';
+import { AppConfigModule } from './config/app.config';
 
 @Module({
   imports: [
+    AppConfigModule,
     UsersModule,
     AuthModule,
     TypeOrmModule.forRoot({

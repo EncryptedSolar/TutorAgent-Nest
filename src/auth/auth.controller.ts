@@ -6,10 +6,9 @@ import {
   Body,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './local-auth.guard';
-import { JwtAuthGuard } from './jwt.guard';
+import { LocalAuthGuard } from '../common/guards/local-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt.guard';
 import { CreateUserDto } from 'src/dto/createuser.dto';
-import { UsersService } from 'src/user/user.service';
 
 @Controller('auth')
 export class AuthController {
