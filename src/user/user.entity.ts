@@ -8,8 +8,8 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
-  password: string;
+  @Column({ nullable: true })
+  password?: string;
 
   @Column()
   role: 'USER' | 'ADMIN';
@@ -23,4 +23,7 @@ export class User {
   // Store hashed refresh token for security
   @Column({ type: 'text', nullable: true })
   refreshTokenHash: string | null;
+
+  @Column({ default: false })
+  isGoogleUser: boolean;
 }

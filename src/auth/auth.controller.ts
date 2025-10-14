@@ -12,7 +12,9 @@ import { CreateUserDto } from 'src/dto/createuser.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+
+  constructor(private authService: AuthService) {
+  }
 
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
@@ -27,6 +29,16 @@ export class AuthController {
   @Post('login')
   async login(@Request() req) {
     return this.authService.login(req.user);
+  }
+
+  /**
+    * User login with Google OAuth
+    * Accepts a Google ID token.
+    * Returns an access token and refresh token.
+    */
+  @Post('google')
+  async googleLogin(@Body('token') token: string) {
+    return this.authService.googleLogin(token);
   }
 
   /**

@@ -6,6 +6,7 @@ import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import { User } from './user.entity';
 import { CreateUserDto } from 'src/dto/createuser.dto';
+import { GoogleUserDto } from 'src/dto/google-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +40,31 @@ export class UsersService {
       password: hashedPassword,
       role: dto.role || 'USER',
       username,
+    });
+
+    await this.usersRepository.save(user);
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  async createGoogleUser(dto: GoogleUserDto) {
+    const existingEmail = await this.usersRepository.findOne({ where: { email: dto.email } });
+    if (existingEmail) return existingEmail;
+
+    // Generate GitHub-style unique username
+    let baseSlug = slugify(dto.name || dto.email.split('@')[0], { lower: true, strict: true });
+    let username: string;
+    do {
+      username = `${baseSlug}-${nanoid(4)}`;
+    } while (await this.usersRepository.findOne({ where: { username } }));
+
+    const user = this.usersRepository.create({
+      email: dto.email,
+      name: dto.name,
+      password: '', // 👈 stored empty for Google users
+      role: dto.role || 'USER',
+      username,
+      isGoogleUser: true,
     });
 
     await this.usersRepository.save(user);

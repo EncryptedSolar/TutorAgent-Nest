@@ -1,20 +1,33 @@
-// src/auth/auth.service.ts
 import {
   Injectable,
-  UnauthorizedException,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/user/user.service';
 import { CreateUserDto } from 'src/dto/createuser.dto';
 import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
+import { OAuth2Client } from 'google-auth-library';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private readonly googleClient: OAuth2Client;
+  private readonly googleClientId: string;
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtUtils: JwtUtilsService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    const clientId = this.configService.get<string>('google.googleClientId');
+    if (!clientId) {
+      throw new Error('GOOGLE_CLIENT_ID is not set in configuration');
+    }
+
+    this.googleClientId = clientId;
+    this.googleClient = new OAuth2Client(this.googleClientId);
+  }
 
   // ✅ Validate user credentials
   async validateUser(email: string, password: string) {
@@ -39,6 +52,61 @@ export class AuthService {
     return this.issueTokensForUser(user);
   }
 
+  // ✅ Google login
+  async googleLogin(token: string) {
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: token,
+        audience: this.googleClientId,
+      });
+
+      const payload = ticket.getPayload();
+      if (!payload?.email) throw new UnauthorizedException('Invalid Google token');
+
+      // Try to find existing user
+      let user = await this.usersService.findByEmail(payload.email);
+
+      // If user doesn’t exist, create them
+      if (!user) {
+        const newUserDto = {
+          email: payload.email,
+          name: payload.name || 'Unnamed User',
+          password: '', // not used for Google users
+          role: 'USER' as const,
+        };
+
+        user = await this.usersService.createGoogleUser(newUserDto);
+      }
+
+      // Include Google picture in the safeUser object sent to frontend
+      const safeUser = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        username: user.username,
+        picture: payload.picture || null, // ✅ send picture from Google token
+      };
+
+      // Issue app JWTs (without storing picture in DB)
+      const payloadJwt = { sub: user.id, email: user.email, role: user.role };
+      const { accessToken, refreshToken } = await this.jwtUtils.generateTokens(payloadJwt);
+
+      const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+      await this.usersService.update(user.id, { refreshTokenHash });
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        user: safeUser,
+      };
+    } catch (err) {
+      console.error('Google login failed:', err);
+      throw new UnauthorizedException('Google authentication failed');
+    }
+  }
+
+
   // ✅ Issue new access & refresh tokens
   private async issueTokensForUser(user: any) {
     const payload = { sub: user.id, email: user.email, role: user.role };
@@ -54,6 +122,7 @@ export class AuthService {
       role: user.role,
       name: user.name,
       username: user.username,
+      picture: user.picture || null,
     };
 
     return {
