@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import { User } from './user.entity';
-import { CreateUserDto } from 'src/dto/createuser.dto';
+import { CreateUserDto } from 'src/dto/create-user.dto';
 import { GoogleUserDto } from 'src/dto/google-user.dto';
 
 @Injectable()

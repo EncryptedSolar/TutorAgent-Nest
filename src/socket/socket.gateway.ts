@@ -23,12 +23,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     @UseGuards(WsJwtGuard)
-    @SubscribeMessage('message')
+    @SubscribeMessage('user-chat')
     handleMessage(@MessageBody() data: { text: string; id: string }, @ConnectedSocket() client: Socket) {
         console.log(`Received message from ${client.data.user.email}:`, data);
 
         // Echo back the original message to sender (optional)
-        client.emit("message", {
+        client.emit("user-chat", {
             id: uuidv4(),
             text: "🤖 Placeholder reply: Thanks for your message!",
             from: 'other',

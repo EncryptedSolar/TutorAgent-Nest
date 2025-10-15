@@ -8,7 +8,7 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 import { JwtAuthGuard } from '../common/guards/jwt.guard';
-import { CreateUserDto } from 'src/dto/createuser.dto';
+import { CreateUserDto } from 'src/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {

@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/user/user.service';
-import { CreateUserDto } from 'src/dto/createuser.dto';
+import { CreateUserDto } from 'src/dto/create-user.dto';
 import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
