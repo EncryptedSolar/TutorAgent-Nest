@@ -8,16 +8,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
 import { SocketGateway } from './socket/socket.gateway';
 import { AppConfigModule } from './config/app.config';
+import { UserManagementModule } from './user-management/user-management.module';
+import { UserSession } from './user-management/user-session.entity';
 
 @Module({
   imports: [
     AppConfigModule,
     UsersModule,
     AuthModule,
+    UserManagementModule,
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:', // in-memory DB
-      entities: [User],
+      autoLoadEntities: true, // 👈 fix
       synchronize: true,    // auto-create tables
       dropSchema: true,     // reset DB on every server restart
       logging: true,

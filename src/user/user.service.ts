@@ -38,7 +38,7 @@ export class UsersService {
       email: dto.email,
       name: dto.name,
       password: hashedPassword,
-      role: dto.role || 'USER',
+      role: 'USER',
       username,
     });
 
@@ -71,6 +71,28 @@ export class UsersService {
     const { password, ...safeUser } = user;
     return safeUser;
   }
+
+  // ✅ Validate user credentials safely
+  async validateUser(email: string, password: string) {
+    const user = await this.findByEmail(email);
+    console.log('🧩 validateUser called for:', email);
+    console.log('🔍 Found user:', user);
+
+    if (!user) return null;
+    if (!user.password) {
+      console.warn('⚠️ User has no password hash stored');
+      return null;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) return null;
+
+    // ✅ Return full user entity — don't strip password yet
+    return user;
+  }
+
+
+
 
   // ✅ Find user by email (includes password for auth)
   async findByEmail(email: string): Promise<User | null> {

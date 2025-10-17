@@ -9,6 +9,8 @@ import { CreateUserDto } from 'src/dto/create-user.dto';
 import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
+import { UserManagementService } from 'src/user-management/user.management.service';
+import { LoginUserDto } from 'src/dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +21,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtUtils: JwtUtilsService,
     private readonly configService: ConfigService,
+    private readonly userManagementService: UserManagementService,
   ) {
     const clientId = this.configService.get<string>('google.googleClientId');
     if (!clientId) {
@@ -29,18 +32,6 @@ export class AuthService {
     this.googleClient = new OAuth2Client(this.googleClientId);
   }
 
-  // ✅ Validate user credentials
-  async validateUser(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) return null;
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) return null;
-
-    const { password: _, ...safeUser } = user;
-    return safeUser;
-  }
-
   // ✅ Register new user and auto-login
   async register(dto: CreateUserDto) {
     const user = await this.usersService.createUser(dto);
@@ -48,7 +39,12 @@ export class AuthService {
   }
 
   // ✅ Login
-  async login(user: any) {
+  async login(dto: LoginUserDto) {
+    const user = await this.usersService.validateUser(dto.email, dto.password);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     return this.issueTokensForUser(user);
   }
 
@@ -110,9 +106,8 @@ export class AuthService {
   // ✅ Issue new access & refresh tokens
   private async issueTokensForUser(user: any) {
     const payload = { sub: user.id, email: user.email, role: user.role };
-    const { accessToken, refreshToken } =
-      await this.jwtUtils.generateTokens(payload);
-
+    const { accessToken, refreshToken } = await this.jwtUtils.generateTokens(payload);
+    console.log('🪙 Tokens generated:', { accessToken, refreshToken });
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
     await this.usersService.update(user.id, { refreshTokenHash });
 
