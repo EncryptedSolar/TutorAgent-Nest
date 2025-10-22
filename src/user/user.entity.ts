@@ -26,4 +26,8 @@ export class User {
 
   @Column({ default: false })
   isGoogleUser: boolean;
+
+  // ✅ Optional profile picture URL
+  @Column({ nullable: true })
+  picture?: string | null;
 }

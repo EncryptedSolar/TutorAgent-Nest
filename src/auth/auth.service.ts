@@ -39,15 +39,10 @@ export class AuthService {
   }
 
   // ✅ Login
-  async login(dto: LoginUserDto) {
-    const user = await this.usersService.validateUser(dto.email, dto.password);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    return this.issueTokensForUser(user);
+  async login(input: LoginUserDto | any) {
+    // validation is in local.strategy.ts
+    return this.issueTokensForUser(input);
   }
-
   // ✅ Google login
   async googleLogin(token: string) {
     try {
