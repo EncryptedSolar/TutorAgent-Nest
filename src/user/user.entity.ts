@@ -26,4 +26,8 @@ export class User {
 
   @Column({ default: false })
   isGoogleUser: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  picture?: string | null;
+
 }

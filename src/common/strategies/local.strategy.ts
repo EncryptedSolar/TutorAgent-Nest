@@ -6,7 +6,7 @@ import { UsersService } from 'src/user/user.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-  constructor(private authService: AuthService, private userService: UsersService) {
+  constructor(private userService: UsersService) {
     super({ usernameField: 'email' }); // default is 'username'
   }
 
