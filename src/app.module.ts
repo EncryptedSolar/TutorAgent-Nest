@@ -3,9 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { LoggerService } from './common/utils/logger';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
 import { SocketGateway } from './socket/socket.gateway';
 import { AppConfigModule } from './config/app.config';
 import { UserManagementModule } from './user-management/user-management.module';
@@ -27,6 +25,6 @@ import { UserSession } from './user-management/user-session.entity';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, LoggerService, SocketGateway],
+  providers: [AppService, SocketGateway],
 })
 export class AppModule { }

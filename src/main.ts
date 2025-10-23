@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { LoggerService } from './common/utils/logger';
 import { ConfigService } from '@nestjs/config';
 // in main.ts (for dev only)
 // const originalLog = console.log;
@@ -21,11 +20,6 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
   const nodeEnv = configService.get<string>('NODE_ENV', 'development');
   const frontendOrigin = configService.get<string>('FRONTEND_ORIGIN', 'http://localhost:5173');
-
-  // 🧠 Conditional logger setup (only in dev)
-  if (nodeEnv === 'development') {
-    app.get(LoggerService); // if it self-registers its pipes or interceptors
-  }
 
   // 🌐 Enable CORS with environment config
   app.enableCors({
