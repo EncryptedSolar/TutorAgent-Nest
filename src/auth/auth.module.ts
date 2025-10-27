@@ -10,12 +10,12 @@ import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { LocalStrategy } from 'src/common/strategies/local.strategy';
 import { LocalAuthGuard } from 'src/common/guards/local-auth.guard';
 import { JwtStrategy } from 'src/common/strategies/jwt.strategy';
-import { UserManagementModule } from 'src/user-management/user-management.module';
+import { UserSessionModule } from 'src/user-session-management/user-session.module';
 
 @Module({
     imports: [
         UsersModule,
-        UserManagementModule,
+        UserSessionModule,
         ConfigModule,
         JwtModule.register({})
     ],

@@ -4,6 +4,7 @@ import {
   UseGuards,
   Request,
   Body,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from '../common/guards/local-auth.guard';
@@ -17,8 +18,8 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(@Request() req) {
+    return this.authService.register(req);
   }
   /**
    * User login
@@ -28,7 +29,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req) {
-    return this.authService.login(req.user);
+    return this.authService.login(req); // ✅ pass the whole request
   }
 
   /**
@@ -37,8 +38,8 @@ export class AuthController {
     * Returns an access token and refresh token.
     */
   @Post('google')
-  async googleLogin(@Body('token') token: string) {
-    return this.authService.googleLogin(token);
+  async googleLogin(@Req() req, @Body('token') token: string) {
+    return this.authService.googleLogin(token, req);
   }
 
   /**
