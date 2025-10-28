@@ -19,17 +19,6 @@ import { Role } from 'src/common/enums/role.enum';
 export class UserSessionController {
   constructor(private readonly userSessionService: UserSessionService) { }
 
-  @Post('sessions')
-  @Roles(Role.ADMIN)
-  async createSession(@Body() data: Partial<UserSessionEntity>) {
-    return this.userSessionService.createSession({
-      userId: data.userId!,
-      role: data.role!,
-      jwtId: data.jwtId!,
-      ipAddress: data.ipAddress,
-      deviceInfo: data.deviceInfo,
-    });
-  }
   /**
    * List all user sessions (active, idle, offline, etc.)
    */
