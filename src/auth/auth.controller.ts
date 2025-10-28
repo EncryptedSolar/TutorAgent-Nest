@@ -9,7 +9,6 @@ import {
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 import { JwtAuthGuard } from '../common/guards/jwt.guard';
-import { CreateUserDto } from 'src/dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -48,6 +47,7 @@ export class AuthController {
    */
   @Post('refresh')
   async refresh(@Body('refreshToken') refreshToken: string) {
+    console.log(`Refreshing token: ${refreshToken}`);
     return this.authService.refreshTokens(refreshToken);
   }
 

@@ -2,6 +2,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class JwtUtilsService {
@@ -22,6 +23,7 @@ export class JwtUtilsService {
   }
 
   async generateTokens(payload: Record<string, any>) {
+    const jti = uuidv4(); // 👈 generate unique JWT ID
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: this.accessSecret,
@@ -33,7 +35,7 @@ export class JwtUtilsService {
       }),
     ]);
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, jti };
   }
 
   async verifyRefreshToken(token: string) {
