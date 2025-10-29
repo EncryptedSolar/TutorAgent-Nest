@@ -11,7 +11,6 @@ import { UserSessionService } from './user-session.service';
 import { Roles } from 'src/common/decoratos/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { UserSessionEntity } from './user-session.entity';
 import { Role } from 'src/common/enums/role.enum';
 
 @Controller('user-session')

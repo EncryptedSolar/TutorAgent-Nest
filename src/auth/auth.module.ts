@@ -11,12 +11,14 @@ import { LocalStrategy } from 'src/common/strategies/local.strategy';
 import { LocalAuthGuard } from 'src/common/guards/local-auth.guard';
 import { JwtStrategy } from 'src/common/strategies/jwt.strategy';
 import { UserSessionModule } from 'src/user-session-management/user-session.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
     imports: [
         UsersModule,
         UserSessionModule,
         ConfigModule,
+        PrismaModule,
         JwtModule.register({})
     ],
     providers: [AuthService, JwtUtilsService, LocalAuthGuard, LocalStrategy, JwtAuthGuard, JwtStrategy],

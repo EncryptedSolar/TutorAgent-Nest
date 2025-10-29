@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  password         String?
+  role             Role
+  name             String
+  username         String        @unique
+  refreshTokenHash String?
+  isGoogleUser     Boolean       @default(false)
+  picture          String?
+  sessions         UserSession[] @relation("UserSessions")
+
+  @@map("users")
+}
+
+model UserSession {
+  id           String         @id @default(uuid())
+  userId       String
+  role         String
+  jwtId        String?        @unique
+  ipAddress    String?
+  deviceInfo   String?
+  socketId     String?
+  status       SessionStatus  @default(ACTIVE)
+  lastActivity DateTime       @default(now())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  terminatedAt DateTime?
+
+  user         User           @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+  @@index([jwtId])
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SessionStatus {
+  ACTIVE
+  IDLE
+  OFFLINE
+  TERMINATED
+}

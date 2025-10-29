@@ -1,98 +1,165 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TutorAgent Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A **NestJS backend** for an agentic tutor system. This backend interprets system specifications (blueprints) provided by authorized designers and dynamically instantiates agents to fulfill learning workflows. End users can interact with these agents as if they were real tutors.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- [Project Description](#project-description)  
+- [Features](#features)  
+- [Tech Stack](#tech-stack)  
+- [Prerequisites](#prerequisites)  
+- [Installation](#installation)  
+- [Running the Project](#running-the-project)  
+- [Scripts](#scripts)  
+- [Project Structure](#project-structure)  
+- [Future Improvements](#future-improvements)  
+- [Contributing](#contributing)  
+- [License](#license)  
 
-## Project setup
+---
 
-```bash
-$ npm install
-```
+## Project Description
 
-## Compile and run the project
+This backend serves as the **orchestrator for a multi-agent tutor system**:
 
-```bash
-# development
-$ npm run start
+- System admins provide a **blueprint** describing a learning workflow.  
+- Each workflow may include multiple agents, each with **its own system prompt, responsibilities, and sequence of actions**.  
+- When a user interacts with the system, the backend instantiates the workflow and routes messages to the agents, making it **appear as if the user is talking to a real tutor**.  
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
-```
+## Features
 
-## Run tests
+- User authentication (including Google login)  
+- Session management with JWT tokens  
+- Dynamic agent workflow instantiation based on blueprints  
+- Fully type-safe using **Prisma**  
+- Development-ready SQLite database (planned PostgreSQL support)  
+- Clear modular NestJS architecture  
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
+## Tech Stack
 
-# test coverage
-$ npm run test:cov
-```
+- **Backend Framework:** NestJS  
+- **ORM:** Prisma  
+- **Database:** SQLite (development), PostgreSQL (planned)  
+- **Cache / Queue:** Redis (planned)  
+- **Authentication:** JWT, Google OAuth2  
+- **Testing:** Jest  
+- **Linting & Formatting:** ESLint, Prettier  
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Prerequisites
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Node.js >= 18.x  
+- npm or Yarn  
+- SQLite (bundled, no separate install required for dev)  
+- PostgreSQL & Redis (optional / planned for production)  
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+---
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Installation
 
-## Resources
+# Clone the repository
+git clone <your-repo-url>
+cd <your-project-folder>
 
-Check out a few resources that may come in handy when working with NestJS:
+# Install dependencies
+npm install
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+---
 
-## Support
+## Running the Project
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Development
 
-## Stay in touch
+# Start in watch mode
+npm run start:dev
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### Production
+
+# Build the project
+npm run build
+
+# Run the compiled app
+npm run start:prod
+
+### Debugging
+
+# Start with debugger enabled
+npm run start:debug
+
+## Recommended Prisma Commands
+
+# Validate schema
+npx prisma validate
+
+# Generate Prisma client
+npx prisma generate
+
+# Push schema changes (creates tables in DB)
+npx prisma db push
+
+# Reset development database (drops all data)
+npx prisma db reset
+---
+
+## Scripts
+
+| Script            | Description |
+|------------------|-------------|
+| npm run start   | Start the app |
+| npm run start:dev | Start in development mode with watch |
+| npm run start:debug | Start in debug mode |
+| npm run start:prod | Start compiled production build |
+| npm run build   | Compile the project |
+| npm run lint    | Lint and fix code using ESLint |
+| npm run format  | Format code using Prettier |
+| npm run test    | Run Jest tests |
+| npm run test:watch | Run Jest in watch mode |
+| npm run test:cov | Run tests with coverage |
+| npm run test:e2e | Run end-to-end tests |
+| npm run prisma:validate | Validate Prisma schema |
+| npm run prisma:generate | Generate Prisma client |
+| npm run prisma:push | Push schema changes to database (creates tables) |
+| npm run prisma:reset | Reset database (drops all data) and reapply migrations |
+---
+
+## Project Structure
+
+src/
+├── common/           # Utility functions, guards, types, strategies
+├── user/             # User module, service, entity
+├── user-session-management/ # User session management module
+├── prisma/           # Prisma client and schema
+├── auth/             # Authentication module, service, controller
+├── main.ts           # Application entry point
+
+---
+
+## Future Improvements
+
+- Replace SQLite with **PostgreSQL** for production.  
+- Integrate **Redis** for caching and message queueing.  
+- Add more advanced agent orchestration and workflow visualization.  
+- Implement full logging, monitoring, and error tracking.  
+
+---
+
+## Contributing
+
+1. Fork the repository  
+2. Create a feature branch (`git checkout -b feature/your-feature`)  
+3. Commit your changes (`git commit -m 'Add some feature'`)  
+4. Push to the branch (`git push origin feature/your-feature`)  
+5. Create a Pull Request  
+
+---
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is MIT licensed.

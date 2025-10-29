@@ -1,23 +1,22 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
-import { User } from './user.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from 'src/dto/create-user.dto';
 import { GoogleUserDto } from 'src/dto/google-user.dto';
+import { User } from '@prisma/client';
+import { PrismaSafeUser } from 'src/common/types/auth.type';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-  ) { }
+  constructor(private readonly prisma: PrismaService) { }
 
   // ✅ Create new user with unique GitHub-style username
-  async createUser(dto: CreateUserDto) {
-    const existingEmail = await this.usersRepository.findOne({ where: { email: dto.email } });
+  async createUser(dto: CreateUserDto): Promise<PrismaSafeUser> {
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (existingEmail) throw new BadRequestException('Email already in use');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -32,23 +31,27 @@ export class UsersService {
     let username: string;
     do {
       username = `${baseSlug}-${nanoid(4)}`;
-    } while (await this.usersRepository.findOne({ where: { username } }));
+    } while (await this.prisma.user.findUnique({ where: { username } }));
 
-    const user = this.usersRepository.create({
-      email: dto.email,
-      name: dto.name,
-      password: hashedPassword,
-      role: dto.role ?? 'USER',
-      username,
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        name: dto.name,
+        password: hashedPassword,
+        role: dto.role ?? 'USER',
+        username,
+      },
     });
 
-    await this.usersRepository.save(user);
+    // Strip password before returning
     const { password, ...safeUser } = user;
     return safeUser;
   }
 
-  async createGoogleUser(dto: GoogleUserDto) {
-    const existingEmail = await this.usersRepository.findOne({ where: { email: dto.email } });
+  async createGoogleUser(dto: GoogleUserDto): Promise<PrismaSafeUser> {
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (existingEmail) return existingEmail;
 
     // Generate GitHub-style unique username
@@ -56,18 +59,19 @@ export class UsersService {
     let username: string;
     do {
       username = `${baseSlug}-${nanoid(4)}`;
-    } while (await this.usersRepository.findOne({ where: { username } }));
+    } while (await this.prisma.user.findUnique({ where: { username } }));
 
-    const user = this.usersRepository.create({
-      email: dto.email,
-      name: dto.name,
-      password: '', // 👈 stored empty for Google users
-      role: dto.role || 'USER',
-      username,
-      isGoogleUser: true,
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        name: dto.name,
+        password: '', // stored empty for Google users
+        role: dto.role || 'USER',
+        username,
+        isGoogleUser: true,
+      },
     });
 
-    await this.usersRepository.save(user);
     const { password, ...safeUser } = user;
     return safeUser;
   }
@@ -87,21 +91,34 @@ export class UsersService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return null;
 
-    // ✅ Return full user entity — don't strip password yet
-    return user;
+    return user; // Return full user entity
   }
-
-
-
 
   // ✅ Find user by email (includes password for auth)
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  // For google logins
+  async findSafeByEmail(email: string): Promise<PrismaSafeUser | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        name: true,
+        username: true,
+        picture: true,
+        refreshTokenHash: true,
+        isGoogleUser: true,
+      },
+    });
   }
 
   // ✅ Find user by ID (safe return without password)
-  async findById(id: string) {
-    const user = await this.usersRepository.findOne({ where: { id } });
+  async findById(id: string): Promise<PrismaSafeUser | null> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) return null;
     const { password, ...rest } = user;
     return rest;
@@ -109,11 +126,25 @@ export class UsersService {
 
   // ✅ Update user (supports refreshTokenHash and other fields)
   async update(userId: string, partial: Partial<User>): Promise<void> {
-    await this.usersRepository.update({ id: userId }, partial);
+    if (!userId) {
+      throw new BadRequestException('Cannot update user: userId is undefined');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: partial,
+    });
   }
 
-  // Optional helper to clear refresh token
-  async clearRefreshToken(userId: string | number): Promise<void> {
-    await this.usersRepository.update(userId, { refreshTokenHash: null });
+  // ✅ Clear refresh token safely
+  async clearRefreshToken(userId: string): Promise<void> {
+    if (!userId) {
+      throw new BadRequestException('Cannot clear refresh token: userId is undefined');
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshTokenHash: null },
+    });
   }
 }

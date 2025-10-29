@@ -2,6 +2,7 @@ import {
   Injectable,
   ForbiddenException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/user/user.service';
@@ -10,9 +11,8 @@ import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import { UserSessionService } from 'src/user-session-management/user-session.service';
-import { JwtPayload, RequestWithBody, RequestWithUser, SafeUser, TokenPair } from 'src/common/types/auth.type';
+import { JwtPayload, PrismaSafeUser, RequestWithBody, RequestWithUser, SafeUser, TokenPair, TokensForUser } from 'src/common/types/auth.type';
 import { CreateSessionDto } from 'src/dto/create-session.dto';
-import { User } from 'src/user/user.entity';
 import { Request } from 'express';
 
 
@@ -80,7 +80,7 @@ export class AuthService {
     const payload = ticket.getPayload();
     if (!payload?.email) throw new UnauthorizedException('Invalid Google token');
 
-    let user = await this.usersService.findByEmail(payload.email);
+    let user: PrismaSafeUser | null = await this.usersService.findByEmail(payload.email);
     if (!user) {
       user = await this.usersService.createGoogleUser({
         email: payload.email,
@@ -107,9 +107,7 @@ export class AuthService {
   }
 
   // Issue tokens — strongly typed
-  private async issueTokensForUser(
-    user: User,
-  ): Promise<{ access_token: string; refresh_token: string; safeUser: SafeUser; jti: string }> {
+  private async issueTokensForUser(user: PrismaSafeUser): Promise<TokensForUser> {
     const payload: JwtPayload = { sub: user.id, email: user.email, role: user.role };
     const { accessToken, refreshToken, jti } = await this.jwtUtils.generateTokens(payload);
 
@@ -143,7 +141,7 @@ export class AuthService {
 
   // Logout
   async logout(userId: string): Promise<{ message: string }> {
-    await this.usersService.update(userId, { refreshTokenHash: null });
+    await this.usersService.clearRefreshToken(userId);
     return { message: 'Logged out successfully' };
   }
 }
