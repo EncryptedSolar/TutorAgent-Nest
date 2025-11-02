@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { UserSessionService } from './user-session.service';
@@ -23,9 +25,21 @@ export class UserSessionController {
    */
   @Get('sessions')
   @Roles(Role.ADMIN)
-  async getAllSessions() {
-    return this.userSessionService.getAllSessions();
+  async getAllSessions(
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+    @Query('search') search?: string
+  ) {
+    const pageNumber = parseInt(page as string, 10) || 1;
+    const limitNumber = parseInt(limit as string, 10) || 20;
+
+    return this.userSessionService.getAllSessions({
+      page: pageNumber,
+      limit: limitNumber,
+      search,
+    });
   }
+
 
   /**
    * List only active sessions
@@ -42,8 +56,11 @@ export class UserSessionController {
   @Get('sessions/:id')
   @Roles(Role.ADMIN)
   async getSession(@Param('id') id: string) {
-    const sessions = await this.userSessionService.getAllSessions();
-    return sessions.find((s) => s.id === id);
+    const session = await this.userSessionService.getSessionById(id);
+    if (!session) {
+      throw new NotFoundException(`Session with ID ${id} not found`);
+    }
+    return session;
   }
 
   /**

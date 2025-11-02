@@ -9,6 +9,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ActivityInterceptor } from './common/interceptors/activity.interceptor';
 import { UserSessionModule } from './user-session-management/user-session.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { PrismaModule } from './prisma/prisma.module';
     UsersModule,
     AuthModule,
     UserSessionModule,
-    PrismaModule
+    PrismaModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

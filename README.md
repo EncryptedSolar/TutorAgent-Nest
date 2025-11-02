@@ -95,6 +95,9 @@ npm run start:debug
 
 ## Recommended Prisma Commands
 
+# Initialize Prisma
+npx prisma init
+
 # Validate schema
 npx prisma validate
 
