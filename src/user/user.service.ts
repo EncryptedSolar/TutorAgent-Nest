@@ -80,7 +80,7 @@ export class UsersService {
   async validateUser(email: string, password: string) {
     const user = await this.findByEmail(email);
     console.log('🧩 validateUser called for:', email);
-    console.log('🔍 Found user:', user);
+    console.log('🔍 Found user:', user?.name);
 
     if (!user) return null;
     if (!user.password) {

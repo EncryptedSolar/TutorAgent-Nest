@@ -24,12 +24,13 @@ export class JwtUtilsService {
 
   async generateTokens(payload: Record<string, any>) {
     const jti = uuidv4(); // 👈 generate unique JWT ID
+    const payloadWithJti = { ...payload, jti };
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
+      this.jwtService.signAsync(payloadWithJti, {
         secret: this.accessSecret,
         expiresIn: this.accessExpires,
       }),
-      this.jwtService.signAsync(payload, {
+      this.jwtService.signAsync(payloadWithJti, {
         secret: this.refreshSecret,
         expiresIn: this.refreshExpires,
       }),

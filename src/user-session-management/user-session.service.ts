@@ -39,8 +39,6 @@ export class UserSessionService {
     });
   }
 
-
-
   async updateActivity(jwtId: string, socketId?: string): Promise<UserSession | null> {
     const session = await this.prisma.userSession.findUnique({ where: { jwtId } });
     if (!session) return null;
@@ -82,6 +80,7 @@ export class UserSessionService {
   }
 
   async terminateSession(sessionId: string) {
+    console.log(`Terminating session: ${sessionId}`);
     const session = await this.prisma.userSession.findUnique({ where: { id: sessionId } });
     if (!session) return;
 

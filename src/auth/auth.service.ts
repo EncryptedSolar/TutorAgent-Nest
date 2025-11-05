@@ -140,8 +140,14 @@ export class AuthService {
   }
 
   // Logout
-  async logout(userId: string): Promise<{ message: string }> {
+  async logout(userId: string, jti: string): Promise<{ message: string }> {
+    console.log(`Logging out user: ${userId} and it's jti ${jti}`);
     await this.usersService.clearRefreshToken(userId);
+    this.userSessionService.findByJwtId(jti).then(session => {
+      if (session) this.userSessionService.terminateSession(session.id);
+    }).catch((err) => {
+      console.error(`Error terminating session for JWT ID ${jti}:`, err);
+    })
     return { message: 'Logged out successfully' };
   }
 }
