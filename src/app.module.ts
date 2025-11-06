@@ -10,6 +10,9 @@ import { ActivityInterceptor } from './common/interceptors/activity.interceptor'
 import { UserSessionModule } from './user-session-management/user-session.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -19,6 +22,11 @@ import { ScheduleModule } from '@nestjs/schedule';
     UserSessionModule,
     PrismaModule,
     ScheduleModule.forRoot(),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      context: ({ req }) => ({ req }), // important!
+    }),
   ],
   controllers: [AppController],
   providers: [

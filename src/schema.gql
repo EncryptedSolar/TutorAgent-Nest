@@ -1,0 +1,43 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserSessionDTO {
+  id: ID!
+  userId: String!
+  role: String!
+  jwtId: String
+  ipAddress: String
+  deviceInfo: String
+  socketId: String
+  channel: Channel
+  status: SessionStatus!
+  lastActivity: DateTime!
+  loginAt: DateTime!
+  terminatedAt: DateTime
+  duration: Float
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum Channel {
+  REST
+  SOCKET
+  OTHER
+}
+
+enum SessionStatus {
+  ACTIVE
+  IDLE
+  OFFLINE
+  TERMINATED
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  allSessions(page: Int! = 1, limit: Int! = 20, search: String): [UserSessionDTO!]!
+}

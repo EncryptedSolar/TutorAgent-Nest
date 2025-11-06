@@ -6,7 +6,8 @@ import { SessionStatus, UserSession } from '@prisma/client';
 export class UserSessionService {
   private readonly logger = new Logger(UserSessionService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {
+  }
 
   async createSession(params: {
     userId: string;
