@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SessionStatus, UserSession } from '@prisma/client';
+import { Prisma, Role, SessionStatus, UserSession } from '@prisma/client';
 
 @Injectable()
 export class UserSessionService {
@@ -11,7 +11,7 @@ export class UserSessionService {
 
   async createSession(params: {
     userId: string;
-    role: string;
+    role: Role;
     jwtId: string | null;
     ipAddress?: string;
     deviceInfo?: string;
@@ -56,15 +56,12 @@ export class UserSessionService {
     });
   }
 
-
   async attachSocket(jwtId: string, socketId: string) {
     return this.prisma.userSession.updateMany({
       where: { jwtId },
       data: { socketId },
     });
   }
-
-
 
   async markIdle(sessionId: string) {
     await this.prisma.userSession.update({
@@ -103,7 +100,6 @@ export class UserSessionService {
       `Session ${sessionId} terminated after ${durationSeconds}s`
     );
   }
-
 
   async findByJwtId(jwtId: string) {
     return this.prisma.userSession.findUnique({
@@ -146,7 +142,6 @@ export class UserSessionService {
 
     return { sessions, total };
   }
-
 
   async refreshSessionActivity(userId: string, channel: 'REST' | 'SOCKET', socketId?: string) {
     const activeSessions = await this.prisma.userSession.findMany({

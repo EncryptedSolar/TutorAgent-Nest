@@ -1,3 +1,6 @@
+// ========================================
+// Prisma Configuration
+// ========================================
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,19 +10,126 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//
+// ========================================
+// Models
+// ========================================
+//
+
 model User {
-  id               String        @id @default(uuid())
-  email            String        @unique
+  id               String     @id @default(uuid())
+  email            String     @unique
   password         String?
   role             Role
   name             String
-  username         String        @unique
+  username         String     @unique
   refreshTokenHash String?
-  isGoogleUser     Boolean       @default(false)
+  isGoogleUser     Boolean    @default(false)
   picture          String?
-  sessions         UserSession[] @relation("UserSessions")
+  preferredAuth    AuthMethod @default(PASSWORD)
+  hasPasskey       Boolean    @default(false)
+  lastLoginAt      DateTime?
+  lastLoginIP      String?
+  lastLogoutAt     DateTime?
+  lastLogoutReason String?
+  region           String? // optional, can be "US", "MY", etc.
+
+  // Live snapshot / presence
+  currentStatus   SessionStatus? @default(OFFLINE)
+  activeSessionId String?
+
+  sessions    UserSession[]        @relation("UserSessions")
+  credentials WebAuthnCredential[]
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  userEvents UserEvent[]
 
   @@map("users")
+}
+
+model UserSession {
+  id           String   @id @default(uuid())
+  userId       String
+  role         Role
+  jwtId        String?  @unique
+  ipAddress    String?
+  deviceInfo   String?
+  deviceType   String? // e.g., "desktop", "mobile"
+  geoLocation  Json? // e.g., { lat: 3.14, lng: 101.69 }
+  region       String? // e.g., "MY", "US"
+  channel      Channel? // REST / SOCKET / OTHER
+  socketId     String?
+  connectionId String? // for WebSocket or SSE tracking
+  instanceId   String? // backend node handling this session
+
+  // Live presence & telemetry
+  status       SessionStatus @default(ACTIVE)
+  currentView  String? // e.g., "/dashboard", "settings"
+  lastActivity DateTime      @default(now())
+  lastPingAt   DateTime? // last heartbeat or ping
+  idleDuration Int? // seconds since last activity
+  metadata     Json? // arbitrary dynamic info
+
+  // Lifecycle tracking
+  loginAt      DateTime  @default(now())
+  terminatedAt DateTime?
+  duration     Int? // total seconds (computed on close)
+  lastEventId  String?
+  eventsCount  Int?      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User        @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
+  userEvents UserEvent[]
+
+  @@index([jwtId])
+  @@index([userId, status])
+  @@index([lastActivity])
+  @@index([status, lastActivity])
+  @@index([region, status])
+  @@map("user_sessions")
+}
+
+model UserEvent {
+  id        String   @id @default(uuid())
+  userId    String
+  sessionId String?
+  component String
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user    User         @relation(fields: [userId], references: [id])
+  session UserSession? @relation(fields: [sessionId], references: [id])
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(uuid())
+  userId       String
+  credentialId String    @unique
+  publicKey    String
+  counter      Int       @default(0)
+  deviceName   String?
+  lastUsedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("webauthn_credentials")
+}
+
+//
+// ========================================
+// Enums
+// ========================================
+//
+
+enum Role {
+  USER
+  ADMIN
 }
 
 enum Channel {
@@ -28,38 +138,20 @@ enum Channel {
   OTHER
 }
 
-model UserSession {
-  id           String         @id @default(uuid())
-  userId       String
-  role         String
-  jwtId        String?        @unique
-  ipAddress    String?
-  deviceInfo   String?
-  socketId     String?
-  channel      Channel?       // new: identifies how the session was created
-  status       SessionStatus  @default(ACTIVE)
-  lastActivity DateTime       @default(now())
-  loginAt      DateTime       @default(now()) // new: explicit login time
-  terminatedAt DateTime?
-  duration     Int?            // new: session length in seconds
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  user         User           @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_sessions")
-  @@index([jwtId])
-  @@index([userId, status])    // new: helps queries like "active sessions for a user"
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
 enum SessionStatus {
   ACTIVE
   IDLE
   OFFLINE
   TERMINATED
+  EXPIRED // token or inactivity timeout
+  ERROR // abnormal termination
+}
+
+enum AuthMethod {
+  PASSWORD
+  PASSKEY
+  OAUTH_GOOGLE
+  OAUTH_GITHUB
+  OAUTH_FACEBOOK
+  OTHER
 }

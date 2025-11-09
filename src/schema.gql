@@ -2,10 +2,26 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type UserDTO {
+  id: ID!
+  email: String!
+  name: String!
+  username: String!
+  role: Role!
+  picture: String
+  isGoogleUser: Boolean
+}
+
+"""User role"""
+enum Role {
+  USER
+  ADMIN
+}
+
 type UserSessionDTO {
   id: ID!
-  userId: String!
   role: String!
+  user: UserDTO!
   jwtId: String
   ipAddress: String
   deviceInfo: String
@@ -18,19 +34,25 @@ type UserSessionDTO {
   duration: Float
   createdAt: DateTime!
   updatedAt: DateTime!
+  currentComponent: String
+  lastComponentActivityAt: DateTime
 }
 
+"""Session channel"""
 enum Channel {
   REST
   SOCKET
   OTHER
 }
 
+"""Session status"""
 enum SessionStatus {
   ACTIVE
   IDLE
   OFFLINE
   TERMINATED
+  EXPIRED
+  ERROR
 }
 
 """

@@ -13,6 +13,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
+import './common/enums/graphql.enum'; // ensures enums are registered before schema generation
 
 @Module({
   imports: [

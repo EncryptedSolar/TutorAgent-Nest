@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decoratos/roles.decorator';
+import { GqlExecutionContext } from '@nestjs/graphql';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
@@ -22,6 +23,20 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+
+    // Handle GraphQL requests
+    if (context.getType<'graphql'>() === 'graphql') {
+      const gqlCtx = GqlExecutionContext.create(context);
+      const user = gqlCtx.getContext().req.user; // ✅ correct for GraphQL
+
+      if (!user) throw new ForbiddenException('User not found in GraphQL context');
+      if (!requiredRoles.includes(user.role)) {
+        throw new ForbiddenException(`Forbidden: Role "${user.role}" not allowed`);
+      }
+
+      return true;
+    }
+
     // Handle HTTP requests
     if (context.getType() === 'http') {
       const request = context.switchToHttp().getRequest();
@@ -29,7 +44,7 @@ export class RolesGuard implements CanActivate {
 
       if (!user) throw new ForbiddenException('User not found in request context');
       if (!requiredRoles.includes(user.role)) {
-        throw new ForbiddenException('You do not have permission to access this resource');
+        throw new ForbiddenException(`Forbidden: Role "${user.role}" not allowed`);
       }
 
       return true;
@@ -42,7 +57,7 @@ export class RolesGuard implements CanActivate {
 
       if (!user) throw new ForbiddenException('User not found in socket context');
       if (!requiredRoles.includes(user.role)) {
-        throw new ForbiddenException('You do not have permission to access this resource');
+        throw new ForbiddenException(`Forbidden: Role "${user.role}" not allowed`);
       }
 
       return true;

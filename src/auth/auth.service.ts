@@ -2,18 +2,19 @@ import {
   Injectable,
   ForbiddenException,
   UnauthorizedException,
-  BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/user/user.service';
-import { CreateUserDto } from 'src/dto/create-user.dto';
+import { CreateUserDto } from 'src/user/create-user.dto';
 import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import { UserSessionService } from 'src/user-session-management/user-session.service';
-import { JwtPayload, PrismaSafeUser, RequestWithBody, RequestWithUser, SafeUser, TokenPair, TokensForUser } from 'src/common/types/auth.type';
-import { CreateSessionDto } from 'src/dto/create-session.dto';
+import { JwtPayload, PrismaSafeUser, RequestWithBody, RequestWithUser, TokenPair, TokensForUser } from 'src/common/types/auth.type';
 import { Request } from 'express';
+import { CreateSessionDto } from 'src/user-session-management/create-session.dto';
+import { SafeUser, UserEntity } from 'src/common/types/user.interface';
+import { Role, User } from '@prisma/client';
 
 
 @Injectable()
@@ -80,7 +81,8 @@ export class AuthService {
     const payload = ticket.getPayload();
     if (!payload?.email) throw new UnauthorizedException('Invalid Google token');
 
-    let user: PrismaSafeUser | null = await this.usersService.findByEmail(payload.email);
+    // Get or create the user
+    let user: UserEntity | null = await this.usersService.findByEmail(payload.email);
     if (!user) {
       user = await this.usersService.createGoogleUser({
         email: payload.email,
@@ -89,9 +91,11 @@ export class AuthService {
       });
     }
 
+    // Issue tokens (safeUser will have only frontend-safe fields)
     const { access_token, refresh_token, safeUser, jti } =
       await this.issueTokensForUser(user);
 
+    // Create a session
     await this.userSessionService.createSession({
       userId: user.id,
       role: user.role,
@@ -100,20 +104,19 @@ export class AuthService {
       deviceInfo: req.headers['user-agent'] ?? undefined,
     } as CreateSessionDto);
 
-    // Override picture from Google payload
-    safeUser.picture = payload.picture ?? safeUser.picture ?? null;
+    // Override picture from Google payload if available
+    const finalSafeUser: SafeUser = {
+      ...safeUser,
+      picture: payload.picture ?? safeUser.picture ?? null,
+    };
 
-    return { access_token, refresh_token, user: safeUser };
+    return { access_token, refresh_token, user: finalSafeUser };
   }
 
+
+
   // Issue tokens — strongly typed
-  private async issueTokensForUser(user: PrismaSafeUser): Promise<TokensForUser> {
-    const payload: JwtPayload = { sub: user.id, email: user.email, role: user.role };
-    const { accessToken, refreshToken, jti } = await this.jwtUtils.generateTokens(payload);
-
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
-    await this.usersService.update(user.id, { refreshTokenHash });
-
+  private async issueTokensForUser(user: User | PrismaSafeUser): Promise<TokensForUser> {
     const safeUser: SafeUser = {
       id: user.id,
       email: user.email,
@@ -121,22 +124,34 @@ export class AuthService {
       name: user.name,
       username: user.username ?? undefined,
       picture: user.picture ?? null,
+      preferredAuth: user.preferredAuth,
+      hasPasskey: user.hasPasskey,
+      isGoogleUser: user.isGoogleUser,
+      currentStatus: user.currentStatus ?? null,
     };
+
+    const payload: JwtPayload = { sub: user.id, email: user.email, role: user.role };
+    const { accessToken, refreshToken, jti } = await this.jwtUtils.generateTokens(payload);
+
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await this.usersService.update(user.id, { refreshTokenHash });
 
     return { access_token: accessToken, refresh_token: refreshToken, safeUser, jti };
   }
 
+
   // Refresh tokens
   async refreshTokens(refreshToken: string): Promise<TokenPair> {
     const payload = (await this.jwtUtils.verifyRefreshToken(refreshToken)) as JwtPayload;
-    const user = await this.usersService.findById(payload.sub);
+    const user = await this.usersService.findByIdFull(payload.sub);
     if (!user?.refreshTokenHash) throw new ForbiddenException('Refresh token not found');
 
     const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
     if (!isValid) throw new ForbiddenException('Invalid refresh token');
 
-    const { access_token, refresh_token } = await this.issueTokensForUser(user);
-    return { access_token, refresh_token };
+    const { access_token, refresh_token, safeUser } = await this.issueTokensForUser(user);
+    return { access_token, refresh_token, user: safeUser };
+
   }
 
   // Logout

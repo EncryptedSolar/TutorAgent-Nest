@@ -3,35 +3,34 @@ import * as bcrypt from 'bcrypt';
 import slugify from 'slugify';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto } from 'src/dto/create-user.dto';
-import { GoogleUserDto } from 'src/dto/google-user.dto';
+import { CreateUserDto } from 'src/user/create-user.dto';
+import { GoogleUserDto } from 'src/user/google-user.dto';
 import { User } from '@prisma/client';
 import { PrismaSafeUser } from 'src/common/types/auth.type';
+import { RequestWithMetadata } from 'src/common/types/user.interface';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) { }
 
-  // ✅ Create new user with unique GitHub-style username
-  async createUser(dto: CreateUserDto): Promise<PrismaSafeUser> {
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+  async createUser(dto: CreateUserDto, req?: RequestWithMetadata): Promise<PrismaSafeUser> {
+    const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existingEmail) throw new BadRequestException('Email already in use');
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Generate base slug from name or email prefix
+    // ✅ Create new user with unique GitHub-style username
     let baseSlug = slugify(dto.name, { lower: true, strict: true });
-    if (!baseSlug) {
-      baseSlug = slugify(dto.email.split('@')[0], { lower: true, strict: true });
-    }
+    if (!baseSlug) baseSlug = slugify(dto.email.split('@')[0], { lower: true, strict: true });
 
-    // GitHub-style unique username e.g. john-smith-7g3p
     let username: string;
     do {
       username = `${baseSlug}-${nanoid(4)}`;
     } while (await this.prisma.user.findUnique({ where: { username } }));
+
+    const ipAddress = req?.ip ?? req?.headers['x-forwarded-for'] ?? req?.connection?.remoteAddress ?? null;
+    const deviceInfo = (req?.deviceInfo || req?.headers['user-agent']) ?? null;
+    const region = dto.region ?? req?.region ?? null;
 
     const user = await this.prisma.user.create({
       data: {
@@ -40,41 +39,67 @@ export class UsersService {
         password: hashedPassword,
         role: dto.role ?? 'USER',
         username,
+        region,
       },
     });
 
-    // Strip password before returning
-    const { password, ...safeUser } = user;
+    // Optional: initial UserEvent
+    await this.prisma.userEvent.create({
+      data: {
+        userId: user.id,
+        sessionId: null,
+        component: 'AccountCreation',
+        action: 'REGISTER',
+        metadata: { ipAddress, deviceInfo },
+      },
+    });
+
+    const { password, refreshTokenHash, ...safeUser } = user;
     return safeUser;
   }
 
-  async createGoogleUser(dto: GoogleUserDto): Promise<PrismaSafeUser> {
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (existingEmail) return existingEmail;
+  async createGoogleUser(dto: GoogleUserDto, req?: RequestWithMetadata): Promise<User> {
+    const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existingUser) return existingUser;
 
-    // Generate GitHub-style unique username
     let baseSlug = slugify(dto.name || dto.email.split('@')[0], { lower: true, strict: true });
     let username: string;
     do {
       username = `${baseSlug}-${nanoid(4)}`;
     } while (await this.prisma.user.findUnique({ where: { username } }));
 
+    const ipAddress = req?.ip ?? req?.headers['x-forwarded-for'] ?? req?.connection?.remoteAddress ?? null;
+    const deviceInfo = (req?.deviceInfo || req?.headers['user-agent']) ?? null;
+    const region = dto.region ?? req?.region ?? null;
+
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         name: dto.name,
-        password: '', // stored empty for Google users
+        password: null,
         role: dto.role || 'USER',
         username,
         isGoogleUser: true,
+        region,
       },
     });
 
-    const { password, ...safeUser } = user;
-    return safeUser;
+    // Optional: initial UserEvent
+    await this.prisma.userEvent.create({
+      data: {
+        userId: user.id,
+        sessionId: null,
+        component: 'AccountCreation',
+        action: 'GOOGLE_REGISTER',
+        metadata: { ipAddress, deviceInfo },
+      },
+    });
+
+    return user;
   }
+
+
+
 
   // ✅ Validate user credentials safely
   async validateUser(email: string, password: string) {
@@ -103,16 +128,6 @@ export class UsersService {
   async findSafeByEmail(email: string): Promise<PrismaSafeUser | null> {
     return this.prisma.user.findUnique({
       where: { email },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        name: true,
-        username: true,
-        picture: true,
-        refreshTokenHash: true,
-        isGoogleUser: true,
-      },
     });
   }
 
@@ -120,8 +135,13 @@ export class UsersService {
   async findById(id: string): Promise<PrismaSafeUser | null> {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) return null;
-    const { password, ...rest } = user;
+    const { password, refreshTokenHash, ...rest } = user;
     return rest;
+  }
+
+  // Fetch full user including password and refreshTokenHash
+  async findByIdFull(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({ where: { id } });
   }
 
   // ✅ Update user (supports refreshTokenHash and other fields)

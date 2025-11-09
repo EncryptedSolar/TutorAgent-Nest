@@ -1,10 +1,7 @@
-// user‑session/dto/user‑session.dto.ts
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+// user-session/dto/user-session.dto.ts
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { SessionStatus, Channel } from '@prisma/client';
-
-// Register enums
-registerEnumType(SessionStatus, { name: 'SessionStatus' });
-registerEnumType(Channel, { name: 'Channel' });
+import { UserDTO } from 'src/user/user.dto';
 
 @ObjectType()
 export class UserSessionDTO {
@@ -12,10 +9,10 @@ export class UserSessionDTO {
   id: string;
 
   @Field()
-  userId: string;
-
-  @Field()
   role: string;
+
+  @Field(() => UserDTO)
+  user: UserDTO;
 
   @Field({ nullable: true })
   jwtId?: string;
@@ -52,4 +49,11 @@ export class UserSessionDTO {
 
   @Field()
   updatedAt: Date;
+
+  // 🆕 Future space for component/activity tracking
+  @Field({ nullable: true })
+  currentComponent?: string;
+
+  @Field({ nullable: true })
+  lastComponentActivityAt?: Date;
 }
