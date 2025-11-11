@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from 'src/user/create-user.dto';
 import { GoogleUserDto } from 'src/user/google-user.dto';
-import { User } from '@prisma/client';
+import { SessionStatus, User } from '@prisma/client';
 import { PrismaSafeUser } from 'src/common/types/auth.type';
 import { RequestWithMetadata } from 'src/common/types/user.interface';
 
@@ -166,5 +166,26 @@ export class UsersService {
       where: { id: userId },
       data: { refreshTokenHash: null },
     });
+  }
+
+  async cleanupExpiredSessions(ttlHours = 72) {
+    const cutoff = new Date(Date.now() - ttlHours * 3600 * 1000);
+    const expired = await this.prisma.userSession.updateMany({
+      where: { lastActivity: { lt: cutoff }, status: { not: 'TERMINATED' } },
+      data: { status: 'TERMINATED', terminatedAt: new Date() },
+    });
+    console.log(`Cleaned up ${expired.count} old sessions`);
+  }
+
+  async countActiveSessions(userId: string) {
+    return this.prisma.userSession.count({
+      where: { userId, status: SessionStatus.ACTIVE },
+    });
+  }
+
+  async validateSession(jwtId: string, userId: string) {
+    const session = await this.prisma.userSession.findUnique({ where: { jwtId } });
+    if (!session || session.userId !== userId) return null;
+    return session;
   }
 }
