@@ -1,9 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserEventService {
   private readonly logger = new Logger(UserEventService.name);
+
+  constructor(private readonly prisma: PrismaService) { }
 
   async log(params: {
     userId: string;
@@ -29,5 +32,38 @@ export class UserEventService {
     }
   }
 
-  constructor(private readonly prisma: PrismaService) {}
+  // ────────────────────────────────
+  // 2️⃣ FIND ALL EVENTS (for admin resolver)
+  // ────────────────────────────────
+  async findAll(params: {
+    page: number;
+    limit: number;
+    userId?: string;
+    action?: string;
+    component?: string;
+  }) {
+    const { page, limit, userId, action, component } = params;
+
+    const where: Prisma.UserEventWhereInput = {};
+
+    if (userId) where.userId = userId;
+    if (action) where.action = { contains: action };
+    if (component) where.component = { contains: component };
+
+    const [events, total] = await this.prisma.$transaction([
+      this.prisma.userEvent.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.userEvent.count({ where }),
+    ]);
+
+    this.logger.verbose(`Fetched ${events.length} events (total: ${total})`);
+
+    return { events, total };
+  }
+
+
 }

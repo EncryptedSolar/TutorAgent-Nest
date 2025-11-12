@@ -60,6 +60,24 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type UserEventDTO {
+  id: String!
+  userId: String!
+  sessionId: String
+  component: String!
+  action: String!
+  metadata: JSON
+  createdAt: DateTime!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type Query {
+  allUsers(page: Int! = 1, limit: Int! = 20, search: String): [UserDTO!]!
+  userById(id: String!): UserDTO
   allSessions(page: Int! = 1, limit: Int! = 20, search: String): [UserSessionDTO!]!
+  userEvents(page: Int! = 1, limit: Int! = 50, userId: String, action: String, component: String): [UserEventDTO!]!
 }

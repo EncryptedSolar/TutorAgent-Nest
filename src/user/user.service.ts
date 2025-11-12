@@ -188,4 +188,31 @@ export class UsersService {
     if (!session || session.userId !== userId) return null;
     return session;
   }
+
+  async findAll(params: { page: number; limit: number; search?: string }) {
+    const { page, limit, search } = params;
+
+    const where = search
+      ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { username: { contains: search, mode: 'insensitive' } },
+        ],
+      }
+      : {};
+
+    const [users, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { users, total };
+  }
+
 }

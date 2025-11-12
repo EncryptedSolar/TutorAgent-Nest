@@ -3,13 +3,27 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private static instance: PrismaService;
+
+  constructor() {
+    super();
+    if (PrismaService.instance) return PrismaService.instance;
+    PrismaService.instance = this;
+  }
+
   async onModuleInit() {
-    await this.$connect();
-    console.log('✅ Prisma connected to database');
+    if (!(this as any)._connected) {
+      await this.$connect();
+      (this as any)._connected = true;
+      console.log('✅ Prisma connected');
+    }
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
-    console.log('🛑 Prisma disconnected');
+    if ((this as any)._connected) {
+      await this.$disconnect();
+      (this as any)._connected = false;
+      console.log('🛑 Prisma disconnected');
+    }
   }
 }

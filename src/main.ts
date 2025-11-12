@@ -1,16 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-// in main.ts (for dev only)
-// const originalLog = console.log;
-// console.log = (...args) => {
-//   const safeArgs = args.map(arg =>
-//     typeof arg === 'object'
-//       ? JSON.stringify(arg, null, 2)
-//       : arg
-//   );
-//   originalLog(...safeArgs);
-// };
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
