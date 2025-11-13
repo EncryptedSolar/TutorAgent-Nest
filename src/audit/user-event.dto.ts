@@ -9,8 +9,8 @@ export class UserEventDTO {
   @Field()
   userId: string;
 
-  @Field({ nullable: true })
-  sessionId?: string;
+  @Field(() => String, { nullable: true }) // explicit type required
+  sessionId?: string | null;
 
   @Field()
   component: string;

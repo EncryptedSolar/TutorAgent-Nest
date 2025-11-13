@@ -14,8 +14,7 @@ import { JwtPayload, PrismaSafeUser, RequestWithBody, RequestWithUser, TokenPair
 import { Request } from 'express';
 import { CreateSessionDto } from 'src/user-session-management/create-session.dto';
 import { SafeUser, UserEntity } from 'src/common/types/user.interface';
-import { Role, User } from '@prisma/client';
-
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -68,6 +67,7 @@ export class AuthService {
       deviceInfo: req.headers['user-agent'] ?? undefined,
     } as CreateSessionDto);
 
+    
     return { access_token, refresh_token, user: safeUser };
   }
 

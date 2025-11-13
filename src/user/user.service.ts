@@ -8,10 +8,12 @@ import { GoogleUserDto } from 'src/user/google-user.dto';
 import { SessionStatus, User } from '@prisma/client';
 import { PrismaSafeUser } from 'src/common/types/auth.type';
 import { RequestWithMetadata } from 'src/common/types/user.interface';
+import { UserEventService } from 'src/audit/user-event.service';
+import { v4 as uuidv4 } from 'uuid'
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService, private readonly userEventService: UserEventService) { }
 
   async createUser(dto: CreateUserDto, req?: RequestWithMetadata): Promise<PrismaSafeUser> {
     const existingEmail = await this.prisma.user.findUnique({ where: { email: dto.email } });
@@ -23,6 +25,7 @@ export class UsersService {
     let baseSlug = slugify(dto.name, { lower: true, strict: true });
     if (!baseSlug) baseSlug = slugify(dto.email.split('@')[0], { lower: true, strict: true });
 
+    // Keeps generatin new username if same username found
     let username: string;
     do {
       username = `${baseSlug}-${nanoid(4)}`;
@@ -43,16 +46,15 @@ export class UsersService {
       },
     });
 
-    // Optional: initial UserEvent
-    await this.prisma.userEvent.create({
-      data: {
-        userId: user.id,
-        sessionId: null,
-        component: 'AccountCreation',
-        action: 'REGISTER',
-        metadata: { ipAddress, deviceInfo },
-      },
-    });
+    this.userEventService.createUserEvent({
+      id: uuidv4(),
+      userId: user.id,
+      sessionId: null,
+      component: 'AccountCreation',
+      action: 'REGISTER',
+      metadata: { ipAddress, deviceInfo },
+      createdAt: new Date()
+    })
 
     const { password, refreshTokenHash, ...safeUser } = user;
     return safeUser;
@@ -85,14 +87,14 @@ export class UsersService {
     });
 
     // Optional: initial UserEvent
-    await this.prisma.userEvent.create({
-      data: {
-        userId: user.id,
-        sessionId: null,
-        component: 'AccountCreation',
-        action: 'GOOGLE_REGISTER',
-        metadata: { ipAddress, deviceInfo },
-      },
+    await this.userEventService.createUserEvent({
+      id: uuidv4(),
+      userId: user.id,
+      sessionId: null,
+      component: 'AccountCreation',
+      action: 'GOOGLE_REGISTER',
+      metadata: { ipAddress, deviceInfo },
+      createdAt: new Date()
     });
 
     return user;
@@ -104,8 +106,8 @@ export class UsersService {
   // ✅ Validate user credentials safely
   async validateUser(email: string, password: string) {
     const user = await this.findByEmail(email);
-    console.log('🧩 validateUser called for:', email);
-    console.log('🔍 Found user:', user?.name);
+    // console.log('🧩 validateUser called for:', email);
+    // console.log('🔍 Found user:', user?.name);
 
     if (!user) return null;
     if (!user.password) {

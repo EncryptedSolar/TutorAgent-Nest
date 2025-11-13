@@ -1,4 +1,3 @@
-// user‑session/user‑session.resolver.ts
 import { Resolver, Query, Args, Int } from '@nestjs/graphql';
 import { UserSessionDTO } from './user-session.dto';
 import { UserSessionService } from './user-session.service';

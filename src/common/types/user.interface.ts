@@ -23,13 +23,14 @@ export interface UserSessionHistoryQuery {
   to?: Date;
   limit?: number;
 }
-
 export interface RequestWithMetadata extends Request {
-  ip?: string;            // optional IP property
-  region?: string; // optional region from headers or frontend
-  deviceInfo?: string; // optional device info from frontend
-  // Add connection to satisfy TypeScript
-  connection?: {
+  // Server-determined
+  ip: string;                   // Client IP (always set by server)
+  connection?: {                 // optional, for legacy support
     remoteAddress?: string;
   };
+
+  // Frontend-provided (optional)
+  region?: string;               // e.g., from headers or frontend
+  deviceInfo?: string;           // e.g., user-agent, device metadata
 }

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UserEventDTO } from './user-event.dto';
 
 @Injectable()
 export class UserEventService {
@@ -65,5 +66,19 @@ export class UserEventService {
     return { events, total };
   }
 
+
+  async createUserEvent(event: UserEventDTO) {
+    await this.prisma.userEvent.create({
+      data: {
+        id: event.id,
+        userId: event.userId,
+        sessionId: event.sessionId,
+        component: event.component,
+        action: event.action,
+        metadata: event.metadata,
+        createdAt: event.createdAt
+      },
+    });
+  }
 
 }
