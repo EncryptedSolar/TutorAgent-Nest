@@ -1,6 +1,6 @@
 // user-session/dto/user-session.dto.ts
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { SessionStatus, Channel } from '@prisma/client';
+import { Channel, SessionStatus } from 'generated/prisma/client';
 import { UserDTO } from 'src/user/user.dto';
 
 @ObjectType()

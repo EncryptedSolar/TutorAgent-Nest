@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { User, Role } from '@prisma/client';
 import { SafeUser } from '../../common/types/user.interface';
+import { Role, User } from 'generated/prisma/client';
 
 // ========================================
 // JWT Payload

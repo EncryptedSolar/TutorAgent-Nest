@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import { WsJwtGuard } from 'src/common/guards/ws-jwt.guard';
 
 @WebSocketGateway({ cors: true })
-export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     constructor() {
         

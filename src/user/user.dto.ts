@@ -1,6 +1,6 @@
 // user/dto/user.dto.ts
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Role } from 'generated/prisma/client';
 
 @ObjectType()
 export class UserDTO {

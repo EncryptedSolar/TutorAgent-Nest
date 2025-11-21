@@ -1,5 +1,5 @@
-import { Role } from '@prisma/client';
 import { IsString, IsOptional, IsNotEmpty, IsEnum } from 'class-validator';
+import { Role } from 'generated/prisma/client';
 
 export class CreateSessionDto {
   @IsString()

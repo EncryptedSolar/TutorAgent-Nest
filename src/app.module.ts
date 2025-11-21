@@ -3,7 +3,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { SocketGateway } from './socket/socket.gateway';
 import { AppConfigModule } from './config/app.config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ActivityInterceptor } from './common/interceptors/activity.interceptor';
@@ -14,6 +13,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import './common/enums/graphql.enum'; // ensures enums are registered before schema generation
+import { AgentModule } from './agent/agent.module';
 
 @Module({
   imports: [
@@ -22,6 +22,7 @@ import './common/enums/graphql.enum'; // ensures enums are registered before sch
     AuthModule,
     UserSessionModule,
     PrismaModule,
+    AgentModule,
     ScheduleModule.forRoot(),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -32,7 +33,6 @@ import './common/enums/graphql.enum'; // ensures enums are registered before sch
   controllers: [AppController],
   providers: [
     AppService,
-    SocketGateway,
     /* NestJS automatically registers interceptor as a global interceptor.
     It runs for every request handled by any controller in the app. */
     {

@@ -1,5 +1,5 @@
-import { Role } from '@prisma/client';
 import { IsEmail, IsOptional, IsString, IsEnum } from 'class-validator';
+import { Role } from 'generated/prisma/client';
 
 export class GoogleUserDto {
   @IsEmail({}, { message: 'Email must be valid' })

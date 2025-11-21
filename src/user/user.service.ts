@@ -5,11 +5,11 @@ import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from 'src/user/create-user.dto';
 import { GoogleUserDto } from 'src/user/google-user.dto';
-import { SessionStatus, User } from '@prisma/client';
 import { PrismaSafeUser } from 'src/common/types/auth.type';
 import { RequestWithMetadata } from 'src/common/types/user.interface';
 import { UserEventService } from 'src/audit/user-event.service';
 import { v4 as uuidv4 } from 'uuid'
+import { SessionStatus, User } from 'generated/prisma/client';
 
 @Injectable()
 export class UsersService {

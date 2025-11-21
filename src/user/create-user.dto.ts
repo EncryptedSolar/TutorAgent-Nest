@@ -1,6 +1,5 @@
-import { registerEnumType } from '@nestjs/graphql';
-import { Role } from '@prisma/client';
 import { IsEmail, IsNotEmpty, IsOptional, IsEnum, MinLength, IsString } from 'class-validator';
+import { Role } from 'generated/prisma/client';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Email must be a valid email address' })

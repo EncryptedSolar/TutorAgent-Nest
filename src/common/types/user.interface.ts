@@ -1,4 +1,4 @@
-import { AuthMethod, User } from '@prisma/client';
+import { AuthMethod, User } from "generated/prisma/client";
 
 // Full entity type (same as your DB model)
 export type UserEntity = User;

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserEventDTO } from './user-event.dto';
+import { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class UserEventService {
