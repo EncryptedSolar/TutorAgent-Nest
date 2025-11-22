@@ -1,28 +1,33 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { UsersModule } from '../user/user.module';
+import { UserSessionModule } from '../user-session-management/user-session.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtModule } from '@nestjs/jwt';
-import { UsersModule } from 'src/user/user.module';
-import 'dotenv/config'
-import { ConfigModule } from '@nestjs/config';
-import { JwtUtilsService } from 'src/common/utils/jwt-utils.service';
-import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
-import { LocalStrategy } from 'src/common/strategies/local.strategy';
-import { LocalAuthGuard } from 'src/common/guards/local-auth.guard';
 import { JwtStrategy } from 'src/common/strategies/jwt.strategy';
-import { UserSessionModule } from 'src/user-session-management/user-session.module';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { LocalStrategy } from 'src/common/strategies/local.strategy';
+import { CommonModule } from 'src/common/common.module';
+import { JwtUtilsService } from './utils/jwt-utils.service';
 
 @Module({
     imports: [
         UsersModule,
         UserSessionModule,
-        ConfigModule,
         PrismaModule,
-        JwtModule.register({})
+        CommonModule,
+        JwtModule.register({
+            secret: process.env.JWT_SECRET,
+            signOptions: { expiresIn: '1d' },
+        }),
     ],
-    providers: [AuthService, JwtUtilsService, LocalAuthGuard, LocalStrategy, JwtAuthGuard, JwtStrategy],
     controllers: [AuthController],
-    exports: [AuthService, JwtModule],
+    providers: [
+        AuthService,
+        JwtStrategy,
+        LocalStrategy,
+        JwtUtilsService
+    ],
+    exports: [AuthService, JwtUtilsService],
 })
 export class AuthModule { }
