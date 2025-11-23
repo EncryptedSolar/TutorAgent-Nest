@@ -1,20 +1,19 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { AppConfigModule } from './config/app.config';
+import { AppConfigModule } from './core/config/app.config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { ActivityInterceptor } from './user-session-management/interceptors/activity.interceptor';
-import { UserSessionModule } from './user-session-management/user-session.module';
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from './core/prisma/prisma.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import './common/enums/graphql.enum';
-import { AgentModule } from './agent/agent.module';
 import { CommonModule } from './common/common.module';
+import { UsersModule } from './domain/user/user.module';
+import { AgentModule } from './domain/agent/agent.module';
+import { AuthModule } from './domain/auth/auth.module';
+import { UserSessionModule } from './domain/user-session-management/user-session.module';
+import { ActivityInterceptor } from './domain/user-session-management/interceptors/activity.interceptor';
 
 @Module({
   imports: [
@@ -32,7 +31,7 @@ import { CommonModule } from './common/common.module';
       context: ({ req }) => ({ req }), // important!
     }),
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
     AppService,
     /* NestJS automatically registers interceptor as a global interceptor.

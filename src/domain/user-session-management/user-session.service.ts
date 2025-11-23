@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { UserEventService } from 'src/audit/user-event.service';
+import { PrismaService } from 'src/core/prisma/prisma.service';
 import { AuditAction, AuditComponent } from 'src/common/enums/audit.enum';
 import { Prisma, Role, SessionStatus, UserSession } from 'generated/prisma/client';
+import { UserEventService } from '../audit/user-event.service';
 
 @Injectable()
 export class UserSessionService {

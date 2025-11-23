@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/core/prisma/prisma.service';
 import { UserEventService } from './user-event.service';
 import { UserEventResolver } from './user-event.resolver';
 

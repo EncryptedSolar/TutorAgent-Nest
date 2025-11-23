@@ -3,9 +3,9 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decoratos/roles.decorator';
-import { UserEventService } from 'src/audit/user-event.service';
 import { UserEventDTO } from './user-event.dto';
 import { Role } from 'generated/prisma/client';
+import { UserEventService } from './user-event.service';
 
 @Resolver(() => UserEventDTO)
 @UseGuards(JwtAuthGuard, RolesGuard)

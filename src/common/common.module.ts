@@ -4,7 +4,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
 import { JwtModule } from '@nestjs/jwt';
-import { AppConfigModule } from 'src/config/app.config';
+import { AppConfigModule } from 'src/core/config/app.config';
 
 @Module({
   imports: [

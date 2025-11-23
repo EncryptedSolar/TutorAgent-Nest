@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/core/prisma/prisma.service';
 import { UserEventDTO } from './user-event.dto';
 import { Prisma } from 'generated/prisma/client';
 

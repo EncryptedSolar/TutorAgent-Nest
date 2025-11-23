@@ -5,8 +5,8 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
-import { UserSessionService } from 'src/user-session-management/user-session.service';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { UserSessionService } from '../user-session.service';
 
 @Injectable()
 export class ActivityInterceptor implements NestInterceptor {

@@ -5,9 +5,9 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decoratos/roles.decorator';
-import { UsersService } from 'src/user/user.service';
 import { toUserDTO } from 'src/common/utils/user-utils';
 import { Role } from 'generated/prisma/client';
+import { UsersService } from '../user/user.service';
 
 @Resolver(() => UserSessionDTO)
 @UseGuards(JwtAuthGuard, RolesGuard)   // optional at class-level

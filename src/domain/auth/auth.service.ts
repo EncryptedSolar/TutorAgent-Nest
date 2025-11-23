@@ -4,17 +4,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from 'src/user/user.service';
-import { CreateUserDto } from 'src/user/create-user.dto';
-import { JwtUtilsService } from 'src/auth/utils/jwt-utils.service';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
-import { UserSessionService } from 'src/user-session-management/user-session.service';
 import { JwtPayload, PrismaSafeUser, RequestWithBody, RequestWithUser, TokenPair, TokensForUser } from 'src/common/types/auth.type';
 import { Request } from 'express';
-import { CreateSessionDto } from 'src/user-session-management/create-session.dto';
 import { SafeUser, UserEntity } from 'src/common/types/user.interface';
 import { User } from 'generated/prisma/client';
+import { UsersService } from '../user/user.service';
+import { JwtUtilsService } from './utils/jwt-utils.service';
+import { UserSessionService } from '../user-session-management/user-session.service';
+import { CreateUserDto } from '../user/create-user.dto';
+import { CreateSessionDto } from '../user-session-management/create-session.dto';
 
 @Injectable()
 export class AuthService {

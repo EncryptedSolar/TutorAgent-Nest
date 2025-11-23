@@ -17,8 +17,8 @@ export function toSafeUser(user: UserEntity): SafeUser {
 
 // user/user.utils.ts
 
-import { UserDTO } from "src/user/user.dto";
 import { PrismaSafeUser } from "../types/auth.type";
+import { UserDTO } from "src/domain/user/user.dto";
 
 export function toUserDTO(user: PrismaSafeUser): UserDTO {
   return {
