@@ -97,7 +97,6 @@ model UserEvent {
   id        String   @id @default(uuid())
   userId    String
   sessionId String?
-  component String
   action    String
   metadata  Json?
   createdAt DateTime @default(now())

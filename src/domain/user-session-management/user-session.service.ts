@@ -11,7 +11,7 @@ export class UserSessionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly userEventService: UserEventService,
-  ) {}
+  ) { }
 
   // ────────────────────────────────
   // SECTION 1: Core Session Lifecycle
@@ -39,7 +39,6 @@ export class UserSessionService {
       await this.userEventService.log({
         userId: session.userId,
         sessionId: session.id,
-        component: AuditComponent.USER_SESSION,
         action: AuditAction.LOGIN,
         metadata: {
           ipAddress: session.ipAddress,
@@ -77,7 +76,6 @@ export class UserSessionService {
       await this.userEventService.log({
         userId: session.userId,
         sessionId: session.id,
-        component: AuditComponent.USER_SESSION,
         action: AuditAction.UPDATE_ACTIVITY,
         metadata: { socketId },
       });
@@ -123,7 +121,6 @@ export class UserSessionService {
       await this.userEventService.log({
         userId: session.userId,
         sessionId: session.id,
-        component: AuditComponent.USER_SESSION,
         action: AuditAction.TERMINATE,
         metadata: { durationSeconds },
       });
@@ -162,12 +159,12 @@ export class UserSessionService {
 
     const where: Prisma.UserSessionWhereInput = search
       ? {
-          OR: [
-            { userId: { contains: search } },
-            { ipAddress: { contains: search } },
-            { deviceInfo: { contains: search } },
-          ],
-        }
+        OR: [
+          { userId: { contains: search } },
+          { ipAddress: { contains: search } },
+          { deviceInfo: { contains: search } },
+        ],
+      }
       : {};
 
     const [sessions, total] = await this.prisma.$transaction([
@@ -219,7 +216,6 @@ export class UserSessionService {
       await this.userEventService.log({
         userId: session.userId,
         sessionId: session.id,
-        component: AuditComponent.USER_SESSION,
         action: AuditAction.ATTACH_SOCKET,
         metadata: { socketId },
       });
@@ -249,7 +245,6 @@ export class UserSessionService {
       await this.userEventService.log({
         userId: session.userId,
         sessionId: session.id,
-        component: AuditComponent.USER_SESSION,
         action,
       });
 

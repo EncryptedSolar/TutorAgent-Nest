@@ -13,9 +13,6 @@ export class UserEventDTO {
   sessionId?: string | null;
 
   @Field()
-  component: string;
-
-  @Field()
   action: string;
 
   @Field(() => GraphQLJSON, { nullable: true })

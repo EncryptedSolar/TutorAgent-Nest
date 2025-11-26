@@ -50,7 +50,6 @@ export class UsersService {
       id: uuidv4(),
       userId: user.id,
       sessionId: null,
-      component: 'AccountCreation',
       action: 'REGISTER',
       metadata: { ipAddress, deviceInfo },
       createdAt: new Date()
@@ -91,7 +90,6 @@ export class UsersService {
       id: uuidv4(),
       userId: user.id,
       sessionId: null,
-      component: 'AccountCreation',
       action: 'GOOGLE_REGISTER',
       metadata: { ipAddress, deviceInfo },
       createdAt: new Date()

@@ -19,9 +19,8 @@ export class UserEventResolver {
         @Args('limit', { type: () => Int, defaultValue: 50 }) limit: number,
         @Args('userId', { type: () => String, nullable: true }) userId?: string,
         @Args('action', { type: () => String, nullable: true }) action?: string,
-        @Args('component', { type: () => String, nullable: true }) component?: string,
     ) {
-        const result = await this.userEventService.findAll({ page, limit, userId, action, component });
+        const result = await this.userEventService.findAll({ page, limit, userId, action });
         return result.events; // or return result directly if you want pagination
     }
 }

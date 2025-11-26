@@ -12,7 +12,6 @@ export class UserEventService {
   async log(params: {
     userId: string;
     sessionId?: string;
-    component: string;
     action: string;
     metadata?: Record<string, any>;
   }) {
@@ -21,13 +20,12 @@ export class UserEventService {
         data: {
           userId: params.userId,
           sessionId: params.sessionId ?? null,
-          component: params.component,
           action: params.action,
           metadata: params.metadata ?? {},
         },
       });
 
-      this.logger.verbose(`[${params.component}] ${params.action} logged for ${params.userId}`);
+      this.logger.verbose(`${params.action} logged for ${params.userId}`);
     } catch (err) {
       this.logger.error(`Failed to log event ${params.action}: ${err.message}`);
     }
@@ -41,15 +39,13 @@ export class UserEventService {
     limit: number;
     userId?: string;
     action?: string;
-    component?: string;
   }) {
-    const { page, limit, userId, action, component } = params;
+    const { page, limit, userId, action } = params;
 
     const where: Prisma.UserEventWhereInput = {};
 
     if (userId) where.userId = userId;
     if (action) where.action = { contains: action };
-    if (component) where.component = { contains: component };
 
     const [events, total] = await this.prisma.$transaction([
       this.prisma.userEvent.findMany({
@@ -73,7 +69,6 @@ export class UserEventService {
         id: event.id,
         userId: event.userId,
         sessionId: event.sessionId,
-        component: event.component,
         action: event.action,
         metadata: event.metadata,
         createdAt: event.createdAt

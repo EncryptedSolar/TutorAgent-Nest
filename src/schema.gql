@@ -22,7 +22,6 @@ type UserEventDTO {
   id: String!
   userId: String!
   sessionId: String
-  component: String!
   action: String!
   metadata: JSON
   createdAt: DateTime!
@@ -78,6 +77,6 @@ enum SessionStatus {
 type Query {
   allUsers(page: Int! = 1, limit: Int! = 20, search: String): [UserDTO!]!
   userById(id: String!): UserDTO
-  userEvents(page: Int! = 1, limit: Int! = 50, userId: String, action: String, component: String): [UserEventDTO!]!
+  userEvents(page: Int! = 1, limit: Int! = 50, userId: String, action: String): [UserEventDTO!]!
   allSessions(page: Int! = 1, limit: Int! = 20, search: String): [UserSessionDTO!]!
 }
